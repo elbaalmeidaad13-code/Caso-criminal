@@ -1,0 +1,521 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>Expediente 09: La última llamada</title>
+    <style>
+        :root {
+            --bg-color: #08080a;
+            --panel-bg: #121216;
+            --border-color: #2a2a35;
+            --text-main: #d0d0d5;
+            --text-muted: #888895;
+            --accent-red: #8b0000;
+            --accent-red-glow: rgba(139, 0, 0, 0.4);
+            --nayara-color: #4a709c;
+            --elba-color: #9c6b4a;
+        }
+
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+            -webkit-tap-highlight-color: transparent;
+        }
+
+        body {
+            background-color: var(--bg-color);
+            color: var(--text-main);
+            min-height: 100vh;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            padding: 12px;
+            overflow-x: hidden;
+        }
+
+        .game-container {
+            width: 100%;
+            max-width: 430px;
+            height: 88vh;
+            max-height: 850px;
+            background-color: var(--panel-bg);
+            border: 1px solid var(--border-color);
+            border-radius: 16px;
+            display: flex;
+            flex-direction: column;
+            overflow: hidden;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.8);
+            position: relative;
+        }
+
+        /* Cabecera */
+        header {
+            background: #0d0d11;
+            padding: 12px 16px;
+            border-bottom: 1px solid var(--border-color);
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .header-title {
+            font-size: 0.85rem;
+            letter-spacing: 1px;
+            color: var(--text-muted);
+            text-transform: uppercase;
+        }
+
+        .audio-btn {
+            background: none;
+            border: 1px solid var(--border-color);
+            color: var(--text-main);
+            padding: 4px 10px;
+            border-radius: 20px;
+            font-size: 0.75rem;
+            cursor: pointer;
+        }
+
+        /* Barra de progreso */
+        .progress-bar-container {
+            width: 100%;
+            height: 4px;
+            background: #1a1a22;
+        }
+
+        .progress-bar-fill {
+            height: 100%;
+            background: var(--accent-red);
+            width: 0%;
+            transition: width 0.4s ease;
+        }
+
+        /* Área de contenido principal */
+        .content-area {
+            flex: 1;
+            overflow-y: auto;
+            padding: 16px;
+            display: flex;
+            flex-direction: column;
+            gap: 14px;
+        }
+
+        /* Tarjeta de Turno de Investigadora */
+        .investigator-card {
+            background: rgba(255,255,255,0.03);
+            border-left: 4px solid var(--border-color);
+            padding: 10px 12px;
+            border-radius: 0 8px 8px 0;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+        }
+
+        .investigator-card.nayara {
+            border-left-color: var(--nayara-color);
+        }
+
+        .investigator-card.elba {
+            border-left-color: var(--elba-color);
+        }
+
+        .inv-info h3 {
+            font-size: 0.9rem;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+        }
+
+        .inv-info p {
+            font-size: 0.75rem;
+            color: var(--text-muted);
+        }
+
+        .inv-badge {
+            font-size: 0.7rem;
+            padding: 3px 8px;
+            border-radius: 12px;
+            background: rgba(255,255,255,0.08);
+            text-transform: uppercase;
+        }
+
+        /* Visualizador de Sala */
+        .room-visual {
+            width: 100%;
+            height: 150px;
+            background: #08080a;
+            border: 1px solid var(--border-color);
+            border-radius: 8px;
+            position: relative;
+            overflow: hidden;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            text-align: center;
+            padding: 10px;
+        }
+
+        .room-visual::before {
+            content: '';
+            position: absolute;
+            inset: 0;
+            background: radial-gradient(circle, rgba(139,0,0,0.15) 0%, rgba(0,0,0,0.8) 90%);
+        }
+
+        .room-visual-text {
+            position: relative;
+            z-index: 1;
+            font-size: 0.8rem;
+            color: #a0a0b0;
+            font-style: italic;
+        }
+
+        /* Textos de Historia */
+        .chapter-tag {
+            font-size: 0.75rem;
+            color: var(--accent-red);
+            font-weight: bold;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+        }
+
+        h2.story-title {
+            font-size: 1.25rem;
+            line-height: 1.3;
+            color: #fff;
+        }
+
+        .story-text {
+            font-size: 0.9rem;
+            line-height: 1.5;
+            color: var(--text-main);
+        }
+
+        /* Panel de Decisiones / Botones */
+        .choices-area {
+            padding: 14px 16px;
+            background: #0d0d11;
+            border-top: 1px solid var(--border-color);
+            display: flex;
+            flex-direction: column;
+            gap: 8px;
+        }
+
+        .btn {
+            width: 100%;
+            padding: 12px 16px;
+            background: #1a1a22;
+            border: 1px solid var(--border-color);
+            color: var(--text-main);
+            border-radius: 8px;
+            font-size: 0.85rem;
+            font-weight: 600;
+            text-align: left;
+            cursor: pointer;
+            transition: all 0.2s;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .btn:active {
+            transform: scale(0.98);
+            background: #252530;
+        }
+
+        .btn-primary {
+            background: var(--accent-red);
+            border-color: #a30000;
+            color: #fff;
+            text-align: center;
+            justify-content: center;
+        }
+
+        .btn-primary:active {
+            background: #700000;
+        }
+
+        /* Pantalla de Tutorial Inicial */
+        .tutorial-box {
+            background: rgba(255,255,255,0.02);
+            border: 1px dashed var(--border-color);
+            padding: 12px;
+            border-radius: 8px;
+            font-size: 0.8rem;
+            line-height: 1.4;
+            color: var(--text-muted);
+        }
+
+        .tutorial-box strong {
+            color: var(--text-main);
+        }
+    </style>
+</head>
+<body>
+
+<div class="game-container">
+    <!-- Cabecera -->
+    <header>
+        <div class="header-title" id="header-subtitle">Expediente 09</div>
+        <button class="audio-btn" id="audio-toggle" onclick="toggleAudio()">🔊 Audio: OFF</button>
+    </header>
+
+    <!-- Barra de Progreso -->
+    <div class="progress-bar-container">
+        <div class="progress-bar-fill" id="progress-fill"></div>
+    </div>
+
+    <!-- Contenido Dinámico de la Historia -->
+    <div class="content-area" id="content-area">
+        <!-- Se inyecta por JavaScript -->
+    </div>
+
+    <!-- Botones de Interacción -->
+    <div class="choices-area" id="choices-area">
+        <!-- Se inyecta por JavaScript -->
+    </div>
+</div>
+
+<script>
+    let gameState = {
+        step: 0,
+        currentInvestigator: 'nayara',
+        audioActive: false
+    };
+
+    let audioCtx = null;
+
+    function initAudio() {
+        if (!audioCtx) {
+            audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+        }
+    }
+
+    function playSound(type) {
+        if (!gameState.audioActive || !audioCtx) return;
+        try {
+            let osc = audioCtx.createOscillator();
+            let gain = audioCtx.createGain();
+            osc.connect(gain);
+            gain.connect(audioCtx.destination);
+
+            if (type === 'click') {
+                osc.type = 'sine';
+                osc.frequency.setValueAtTime(300, audioCtx.currentTime);
+                osc.frequency.exponentialRampToValueAtTime(80, audioCtx.currentTime + 0.08);
+                gain.gain.setValueAtTime(0.1, audioCtx.currentTime);
+                gain.gain.exponentialRampToValueAtTime(0.01, audioCtx.currentTime + 0.08);
+                osc.start();
+                osc.stop(audioCtx.currentTime + 0.08);
+            } else if (type === 'transition') {
+                osc.type = 'triangle';
+                osc.frequency.setValueAtTime(120, audioCtx.currentTime);
+                osc.frequency.linearRampToValueAtTime(60, audioCtx.currentTime + 0.3);
+                gain.gain.setValueAtTime(0.15, audioCtx.currentTime);
+                gain.gain.exponentialRampToValueAtTime(0.01, audioCtx.currentTime + 0.3);
+                osc.start();
+                osc.stop(audioCtx.currentTime + 0.3);
+            }
+        } catch(e) {
+            console.log("Audio no activado");
+        }
+    }
+
+    function toggleAudio() {
+        initAudio();
+        gameState.audioActive = !gameState.audioActive;
+        const btn = document.getElementById('audio-toggle');
+        if (gameState.audioActive) {
+            btn.textContent = "🔊 Audio: ON";
+            playSound('click');
+        } else {
+            btn.textContent = "🔊 Audio: OFF";
+        }
+    }
+
+    // --- SECUENCIA DE PASOS CORREGIDA (Índices 0 al 7) ---
+    const storySteps = [
+        {
+            chapter: "Introducción y Tutorial",
+            title: "Protocolo de Cooperación",
+            investigator: null,
+            room: "Menú Principal - Instrucciones",
+            roomDesc: "Mansión Blackwood · Noche cerrada · Tormenta exterior",
+            text: "Bienvenidos a <strong>Expediente 09: La última llamada</strong>. Este juego está diseñado exclusivamente para dos jugadoras (Nayara y Elba) que deben pasarse físicamente este iPhone por turnos. <strong>Se recomienda encarecidamente usar auriculares</strong> para capturar el ambiente sonoro de suspense.",
+            tutorial: true,
+            choices: [
+                { text: "Comenzar Investigación (Capítulo 1)", nextStep: 1 }
+            ]
+        },
+        {
+            chapter: "Capítulo 1 de 7",
+            title: "La Biblioteca y el Teléfono",
+            investigator: "nayara",
+            room: "La Biblioteca (Escena Inicial)",
+            roomDesc: "Estanterías de roble caoba, libros de jurisprudencia y olor a pólvora fría.",
+            text: "Nayara ajusta sus gafas bajo la tenue luz de la lámpara de escritorio. El cuerpo del patriarca yace en el suelo. El registro de llamadas indica que se recibió una misteriosa llamada exactamente <strong>nueve minutos después de la hora oficial de la muerte</strong>.",
+            choices: [
+                { text: "Examinar el registro de llamadas del teléfono fijo", nextStep: 2 },
+                { text: "Pasar el dispositivo a Elba para revisar el cuerpo", nextStep: 2 }
+            ]
+        },
+        {
+            chapter: "Capítulo 2 de 7",
+            title: "El Salón de Huéspedes",
+            investigator: "elba",
+            room: "El Salón de Huéspedes",
+            roomDesc: "Chimenea apagada, alfombras persas y cinco tazas de té humeantes.",
+            text: "Elba se cruza de brazos con expresión fría, rapada al cero y con la mirada fija tras sus gafas. Los cinco sospechosos evitan mirarla a los ojos. Uno de ellos miente sobre su coartada en el momento de la llamada.",
+            choices: [
+                { text: "Interrogar al mayordomo sobre la llamada", nextStep: 3 },
+                { text: "Pasar el dispositivo a Nayara para indagar en el pasillo", nextStep: 3 }
+            ]
+        },
+        {
+            chapter: "Capítulo 3 de 7",
+            title: "La Habitación Cerrada",
+            investigator: "nayara",
+            room: "La Habitación Cerrada",
+            roomDesc: "Puerta blindada por dentro, cerrojo corrido y ventana con cristales intactos.",
+            text: "Nayara analiza los marcos de la puerta principal. Nadie pudo entrar ni salir físicamente, lo que convierte el crimen en un enigma de habitación cerrada. ¿Cómo se efectuó el acceso del asesino?",
+            choices: [
+                { text: "Buscar marcas en el mecanismo del cerrojo", nextStep: 4 },
+                { text: "Pasar turno a Elba para evaluar el testimonio del testigo", nextStep: 4 }
+            ]
+        },
+        {
+            chapter: "Capítulo 4 de 7",
+            title: "El Testigo Clave",
+            investigator: "elba",
+            room: "Galería de Retratos",
+            roomDesc: "Sombras alargadas y cuadros antiguos que parecen observar cada movimiento.",
+            text: "Elba confronta al testigo principal. Las contradicciones en su declaración sobre los nueve minutos posteriores al deceso son evidentes. Alguien oculta el paradero del teléfono móvil del difunto.",
+            choices: [
+                { text: "Presionar al testigo con dureza", nextStep: 5 },
+                { text: "Pasar turno a Nayara para buscar pruebas ocultas", nextStep: 5 }
+            ]
+        },
+        {
+            chapter: "Capítulo 5 de 7",
+            title: "El Sótano de Investigación",
+            investigator: "nayara",
+            room: "Sótano de Investigación",
+            roomDesc: "Humedad, cajas de archivo polvorientas y una línea de teléfono secundaria.",
+            text: "En el subterráneo, Nayara descubre notas manuscritas que demuestran que la llamada de los nueve minutos se originó desde el interior de la propia finca, conectando directamente con el asesino.",
+            choices: [
+                { text: "Reunir las piezas clave con Elba", nextStep: 6 },
+                { text: "Analizar el registro de conexiones de la centralita", nextStep: 6 }
+            ]
+        },
+        {
+            chapter: "Capítulo 6 de 7",
+            title: "La Celada Final",
+            investigator: "elba",
+            room: "Estudio Principal",
+            roomDesc: "Escritorio principal con el dossier abierto y la última prueba definitiva.",
+            text: "Elba y Nayara unifican sus deducciones analíticas e intuitivas. Ya no hay dudas sobre quién de los cinco sospechosos ejecutó el crimen y realizó la llamada póstuma.",
+            choices: [
+                { text: "Preparar la acusación formal conjunta", nextStep: 7 }
+            ]
+        },
+        {
+            chapter: "Capítulo 7 de 7",
+            title: "Expediente Cerrado",
+            investigator: null,
+            room: "Archivo Policial Clasificado",
+            roomDesc: "Caso resuelto. La verdad sale a la luz.",
+            text: "Has completado con éxito <strong>Expediente 09: La última llamada</strong>. La cooperación entre Nayara y Elba ha permitido desentrañar los secretos de la mansión aislada. El asesino ha sido identificado y detenido.",
+            choices: [
+                { text: "🔄 Reiniciar Investigación", nextStep: 0 }
+            ]
+        }
+    ];
+
+    function renderGame() {
+        playSound('transition');
+        const currentData = storySteps[gameState.step];
+        
+        const progressPercent = (gameState.step / (storySteps.length - 1)) * 100;
+        document.getElementById('progress-fill').style.width = `${progressPercent}%`;
+        document.getElementById('header-subtitle').textContent = currentData.chapter;
+
+        const contentArea = document.getElementById('content-area');
+        let htmlContent = '';
+
+        if (currentData.tutorial) {
+            htmlContent = `
+                <div class="chapter-tag">Caso 09 · Acceso Restringido · 18+</div>
+                <h2 class="story-title">La última llamada</h2>
+                <div class="room-visual">
+                    <div class="room-visual-text">Mansión Aislada / 5 Sospechosos / 1 Habitación Cerrada</div>
+                </div>
+                <p class="story-text">${currentData.text}</p>
+                <div class="tutorial-box">
+                    <strong>📱 Modo Parejas:</strong> Vais a jugar turnándoos el iPhone.<br>
+                    <strong>🔍 Nayara:</strong> Pelo largo, gafas, analítica.<br>
+                    <strong>🔦 Elba:</strong> Pelo corto rapado, gafas, directa.
+                </div>
+            `;
+        } else if (gameState.step === storySteps.length - 1) {
+            htmlContent = `
+                <div class="chapter-tag">Expediente Cerrado</div>
+                <h2 class="story-title">${currentData.title}</h2>
+                <div class="room-visual">
+                    <div class="room-visual-text">Caso Resuelto con Éxito</div>
+                </div>
+                <p class="story-text">${currentData.text}</p>
+            `;
+        } else {
+            const isNayara = currentData.investigator === 'nayara';
+            const invName = isNayara ? "Nayara (Pelo largo, Gafas)" : "Elba (Pelo corto rapado, Gafas)";
+            const invClass = isNayara ? "nayara" : "elba";
+            const invRole = isNayara ? "Analítica y observadora" : "Intuitiva y directa";
+
+            htmlContent = `
+                <div class="investigator-card ${invClass}">
+                    <div class="inv-info">
+                        <h3>${invName}</h3>
+                        <p>${invRole}</p>
+                    </div>
+                    <div class="inv-badge">Turno Activo</div>
+                </div>
+
+                <div class="room-visual">
+                    <div class="room-visual-text">📍 ${currentData.room}<br><small>${currentData.roomDesc}</small></div>
+                </div>
+
+                <div class="chapter-tag">${currentData.chapter}</div>
+                <h2 class="story-title">${currentData.title}</h2>
+                <p class="story-text">${currentData.text}</p>
+            `;
+        }
+
+        contentArea.innerHTML = htmlContent;
+
+        const choicesArea = document.getElementById('choices-area');
+        let choicesHtml = '';
+
+        currentData.choices.forEach(choice => {
+            const isPrimary = currentData.tutorial || gameState.step === storySteps.length - 1 || choice.nextStep === 7;
+            const btnClass = isPrimary ? 'btn btn-primary' : 'btn';
+            choicesHtml += `<button class="${btnClass}" onclick="makeChoice(${choice.nextStep})">${choice.text} ➔</button>`;
+        });
+
+        choicesArea.innerHTML = choicesHtml;
+    }
+
+    function makeChoice(nextStep) {
+        playSound('click');
+        gameState.step = nextStep;
+        renderGame();
+    }
+
+    window.onload = function() {
+        renderGame();
+    };
+</script>
+
+</body>
+</html>
